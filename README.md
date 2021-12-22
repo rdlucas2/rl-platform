@@ -75,8 +75,20 @@ docker login devrlsharedacr.azurecr.io
 
 cd src/sentiment/backend
 ```
+docker build -t devrlsharedacr.azurecr.io/sentiment-backend:working .
+docker run --rm -it -p 8080:80 devrlsharedacr.azurecr.io/sentiment-backend:working
+
 docker build -t devrlsharedacr.azurecr.io/sentiment-backend .
 docker push devrlsharedacr.azurecr.io/sentiment-backend
+```
+
+cd src/sentiment/job
+```
+docker build -t devrlsharedacr.azurecr.io/sentiment-job:working . 
+docker run --rm -it devrlsharedacr.azurecr.io/sentiment-job:working
+
+docker build -t devrlsharedacr.azurecr.io/sentiment-job .
+docker push devrlsharedacr.azurecr.io/sentiment-job
 ```
 
 cd dapr-apps/sentiment
@@ -84,6 +96,9 @@ cd dapr-apps/sentiment
 kubectl apply -f ./fast-api.yaml
 kubectl rollout status deploy/fastapiapp
 kubectl get svc fastapiapp
+
+kubectl apply -f ./job.yaml
+kubectl rollout status deploy/jobapp
 ```
 
 cleanup dapr (from dapr-apps directory):
@@ -102,7 +117,7 @@ dapr setup secret store (required for hello-k8s):
 ```
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm repo update
-helm install redis bitnami/redis+
+helm install redis bitnami/redis
 ```
 
 cd dapr-components

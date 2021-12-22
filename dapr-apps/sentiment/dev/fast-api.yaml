@@ -35,7 +35,7 @@ spec:
         dapr.io/app-port: "80"
     spec:
       containers:
-      - name: node
+      - name: fastapi
         image: devrlsharedacr.azurecr.io/sentiment-backend:latest
         ports:
         - containerPort: 80
