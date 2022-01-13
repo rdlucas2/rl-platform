@@ -136,6 +136,8 @@ kubectl rollout status deploy/jobapp
 cleanup dapr (from dapr-apps directory):
 ```
 kubectl delete -f .
+dapr uninstall -k
+helm uninstall redis
 ```
 
 To cleanup infra (from terraform directory):
