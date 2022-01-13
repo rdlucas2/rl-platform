@@ -13,8 +13,8 @@ app.use(bodyParser.json({ type: 'application/*+json' }));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'webclient/dist')));
-// For all other requests, route to React client
-app.get('*', function (_req, res) {
+
+app.get('/', function (_req, res) {
     res.sendFile(path.join(__dirname, 'webclient/dist', 'index.html'));
 });
 
