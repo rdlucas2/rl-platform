@@ -11,8 +11,9 @@ daprPort = os.getenv("DAPR_HTTP_PORT", 3500)
 
 stateStoreName = "statestore"
 stateUrl = f"http://localhost:{daprPort}/v1.0/state/{stateStoreName}"
-# pubsubName = "pubsub"
-# pubSubUrl = f"http://localhost:{daprPort}/v1.0/publish/{pubsubName}/tweets"
+pubsubName = "pubsub"
+topic = "tweets"
+pubSubUrl = f"http://localhost:{daprPort}/v1.0/publish/{pubsubName}/{topic}"
 
 app = FastAPI()
 
@@ -41,18 +42,26 @@ class TweetMeta(BaseModel):
     trend: str
     sentiment_scores: dict
 
-#TODO: this should write to a real database - or switch to pubsub?
-def write_data(data: TweetMeta):
-    response = requests.get(f"{stateUrl}/tweet")
-    currentValue = response.json()
-    if not currentValue:
-        currentValue = []
-    newValue = currentValue + [json.dumps(data.__dict__)]
+async def write_data(data: TweetMeta):
     state = [{
         "key": "tweet",
-        "value": newValue
+        "value": json.dumps(data.__dict__)
     }]
-    requests.post(stateUrl, json=state)
+    response2 = requests.post(stateUrl, json=state, headers={'Content-Type': 'application/json'})
+    print("State response: ", response2.status_code)
+    print(response2.text)
+    response1 = requests.post(pubSubUrl, json=json.dumps(data.__dict__), headers={'Content-Type': 'application/json'})
+    print("PubSub response: ", response1.status_code)
+    print(response1.text)
+    # currentValue = await get_tweets()
+    # if not currentValue:
+    #     currentValue = []
+    # newValue = currentValue + [json.dumps(data.__dict__)]
+    # state = [{
+    #     "key": "tweet",
+    #     "value": newValue
+    # }]
+    # requests.post(stateUrl, json=state)
 
 @app.post("/evaluate")
 async def evaluate(user_input: UserInput, background_tasks: BackgroundTasks):
@@ -75,10 +84,18 @@ async def evaluate(user_input: UserInput, background_tasks: BackgroundTasks):
     data = TweetMeta(id=user_input.id, sentiment=sentiment, trend=user_input.trend, sentiment_scores=sentiment_scores.__dict__)
 
     background_tasks.add_task(write_data, data)
-
+    
     return data
 
 @app.get("/tweets")
 async def get_tweets():
-    response = requests.get(f"{stateUrl}/tweet")
-    return response.json()
+    try:
+        response = requests.get(f"{stateUrl}/tweet")
+        return response.json()
+    except ValueError:
+        return []
+
+@app.delete("/tweets")
+async def delete_tweets():
+    response = requests.delete(f"{stateUrl}/tweet")
+    return response #{"message": "deleted"}

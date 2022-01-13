@@ -75,3 +75,6 @@ msbuild.wrn
 .vs/
 
 appsettings*json
+
+redis-password.txt
+test.html

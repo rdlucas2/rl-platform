@@ -1,3 +1,22 @@
+once code is downloaded, built and images moved to docker, here's the basic k8s cluster setup:
+
+```    
+dapr init -k --enable-ha=true
+
+helm install redis bitnami/redis
+
+#To get your password run:
+kubectl get secret --namespace default redis -o jsonpath="{.data.redis-password}" | base64 --decode
+
+#save the output to a file (this secret is created by default with helm)
+kubectl create secret generic redis --from-file=./redis-password.txt
+
+#if you have to edit an existing password (in the file it's base 64 encoded)
+kubectl edit secrets redis
+
+```
+Now the examples are ready to run.
+
 install git
 clone repo
 
@@ -91,11 +110,24 @@ docker build -t devrlsharedacr.azurecr.io/sentiment-job .
 docker push devrlsharedacr.azurecr.io/sentiment-job
 ```
 
+cd src/sentiment/frontend
+```
+docker build -t devrlsharedacr.azurecr.io/sentiment-frontend:working .
+docker run --rm -it -p 3000:3000 devrlsharedacr.azurecr.io/sentiment-frontend:working
+
+docker build -t devrlsharedacr.azurecr.io/sentiment-frontend .
+docker push devrlsharedacr.azurecr.io/sentiment-frontend
+```
+
 cd dapr-apps/sentiment
 ```
 kubectl apply -f ./fast-api.yaml
 kubectl rollout status deploy/fastapiapp
 kubectl get svc fastapiapp
+
+kubectl apply -f ./frontend.yaml
+kubectl rollout status deploy/frontendapp
+kubectl get svc frontendapp
 
 kubectl apply -f ./job.yaml
 kubectl rollout status deploy/jobapp

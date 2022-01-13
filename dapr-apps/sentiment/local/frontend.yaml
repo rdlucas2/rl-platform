@@ -1,0 +1,44 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: frontendapp
+  labels:
+    app: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+  - protocol: TCP
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontendapp
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "frontendapp"
+        dapr.io/app-port: "3000"
+    spec:
+      containers:
+      - name: frontend
+        image: devrlsharedacr.azurecr.io/sentiment-frontend:working
+        ports:
+        - containerPort: 3000
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: regcred
