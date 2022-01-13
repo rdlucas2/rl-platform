@@ -42,10 +42,10 @@ app.post('/tweets', (req, res) => {
 
 //when a websocket connection is established
 websocketServer.on("connection", (webSocketClient) => {
+    console.log("WebSocket client connected");
     // send feedback to the incoming connection
-    let time = new Date();
-    webSocketClient.send("The time is: " + time.toTimeString());
-
+    // let time = new Date();
+    // webSocketClient.send("The time is: " + time.toTimeString());
     // setInterval(() => {
     //     let time = new Date();
     //     webSocketClient.send("The time is: " + time.toTimeString());
