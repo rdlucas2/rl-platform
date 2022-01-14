@@ -21,12 +21,13 @@ namespace job
                     TwitterSettings twitterSettings = configuration.GetSection("Twitter").Get<TwitterSettings>();
 
                     var twitterClient = new TwitterClient(twitterSettings.ConsumerKey, twitterSettings.ConsumerSecret, twitterSettings.AccessToken, twitterSettings.AccessTokenSecret);
-                    twitterClient.Config.RateLimitTrackerMode = RateLimitTrackerMode.TrackAndAwait;
+                    twitterClient.Config.RateLimitTrackerMode = RateLimitTrackerMode.TrackOnly;
 
                     services.AddHostedService(serviceProvider =>
                         new TwitterWorker(
                             serviceProvider.GetService<ILogger<TwitterWorker>>(),
-                            twitterClient
+                            twitterClient,
+                            twitterSettings.SearchTerm
                         )
                     );
                 });

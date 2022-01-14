@@ -17,15 +17,17 @@ namespace job
     public class TwitterWorker : BackgroundService
     {
         private string DAPR_PORT = Environment.GetEnvironmentVariable("DAPR_HTTP_PORT");
-        private int RETRY_FREQUENCY_IN_MS = Convert.ToInt32(Environment.GetEnvironmentVariable("RetryFrequencyInMs"));
+        private int RETRY_FREQUENCY_IN_MS = 15000;
         private const int USA_WOE_ID = 23424977;
         private readonly ILogger<TwitterWorker> _logger;
         private readonly TwitterClient _twitterClient;
+        private readonly string _searchTerm;
 
-        public TwitterWorker(ILogger<TwitterWorker> logger, TwitterClient twitterClient)
+        public TwitterWorker(ILogger<TwitterWorker> logger, TwitterClient twitterClient, string searchTerm)
         {
             _logger = logger;
             _twitterClient = twitterClient;
+            _searchTerm = searchTerm;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -37,8 +39,13 @@ namespace job
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
 
                     var trendName = await GetUnitedStatesTrendingTweetTopic();
+                    if (trendName == null)
+                    {
+                        trendName = _searchTerm;
+                    }
                     var searchParameters = new SearchTweetsParameters(trendName);
                     searchParameters.Lang = LanguageFilter.English;
+                    searchParameters.PageSize = 60;
                     var tweets = await GetTweets(searchParameters);
                     await SaveTweetsByTrend(tweets, trendName);
                 }
@@ -112,6 +119,7 @@ namespace job
             foreach (var tweet in tweets.Where(x => !x.IsRetweet))
             {
                 await SaveTweetByTrend(tweet, trendName);
+                await Task.Delay(RETRY_FREQUENCY_IN_MS);
             }
         }
 
