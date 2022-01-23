@@ -31,7 +31,7 @@ export default {
     //   this.tweets.unshift({ "id": "1481849540303114244", "sentiment": "positive", "trend": "Sinema", "sentiment_scores": { "positive": 0.275, "neutral": 0.725, "negative": 0, "compound": 0.4648 } });
     // }, 15000);
 
-    let connection = new WebSocket('ws://localhost:3000/');
+    let connection = new WebSocket('ws://' + window.location.host + '/');
     connection.onmessage = (event) => {
       console.log(event.data);
       // console.log(event.data);
