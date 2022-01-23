@@ -79,3 +79,4 @@ appsettings*json
 redis-password.txt
 test.html
 node_modules
+config.json

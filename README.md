@@ -110,6 +110,16 @@ docker build -t devrlsharedacr.azurecr.io/sentiment-job .
 docker push devrlsharedacr.azurecr.io/sentiment-job
 ```
 
+
+cd src/sentiment/altjob
+```
+docker build -t devrlsharedacr.azurecr.io/sentiment-altjob:working . 
+docker run --rm -it devrlsharedacr.azurecr.io/sentiment-altjob:working
+
+docker build -t devrlsharedacr.azurecr.io/sentiment-altjob .
+docker push devrlsharedacr.azurecr.io/sentiment-altjob
+```
+
 cd src/sentiment/frontend
 ```
 docker build -t devrlsharedacr.azurecr.io/sentiment-frontend:working .
@@ -121,6 +131,10 @@ docker push devrlsharedacr.azurecr.io/sentiment-frontend
 
 cd dapr-apps/sentiment
 ```
+kubectl apply -f .\job.yaml -f .\fast-api.yaml -f .\frontend.yaml
+
+kubectl apply -f .\altjob.yaml -f .\fast-api.yaml -f .\frontend.yaml
+
 kubectl apply -f ./fast-api.yaml
 kubectl rollout status deploy/fastapiapp
 kubectl get svc fastapiapp
