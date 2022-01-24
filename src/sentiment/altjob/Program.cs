@@ -25,17 +25,32 @@ namespace altjob
 
             var twitterSettings = config.GetSection("Twitter").Get<TwitterSettings>();
 
-            var creds = new ConsumerOnlyCredentials(twitterSettings.ConsumerKey, twitterSettings.ConsumerSecret) {
+            var creds = new ConsumerOnlyCredentials(twitterSettings.ConsumerKey, twitterSettings.ConsumerSecret)
+            {
                 BearerToken = twitterSettings.Bearer
             };
 
             var twitterClient = new TwitterClient(creds);
+            twitterClient.Config.RateLimitTrackerMode = RateLimitTrackerMode.TrackAndAwait;
 
+            //await StreamTweetsV1(twitterClient);
+            await StreamTweetsV2(twitterClient);
+        }
+
+        private static async Task StreamTweetsV2(TwitterClient twitterClient)
+        {
             var sampleStreamV2 = twitterClient.StreamsV2.CreateSampleStream();
 
             sampleStreamV2.TweetReceived += async (sender, args) =>
             {
-                await SaveTweetByTrend(args.Tweet);
+                try
+                {
+                    await SaveTweetByTrend(args.Tweet);
+                }
+                catch (HttpRequestException ex)
+                {
+                    Console.WriteLine($"Error: {ex.Message}");
+                }
             };
 
             //var streamParams = new StartSampleStreamV2Parameters();
@@ -44,10 +59,40 @@ namespace altjob
             await sampleStreamV2.StartAsync();
         }
 
+        private static async Task StreamTweetsV1(TwitterClient twitterClient)
+        {
+            var stream = twitterClient.Streams.CreateFilteredStream();
+
+            stream.AddTrack("dotnet");
+
+            stream.MatchingTweetReceived += async (sender, eventReceived) =>
+            {
+                if (!eventReceived.Tweet.IsRetweet)
+                    await SaveTweetByTrend(eventReceived.Tweet);
+            };
+
+            await stream.StartMatchingAllConditionsAsync();
+        }
+
+        private static async Task SaveTweetByTrend(ITweet tweet)
+        {
+            Console.WriteLine($"Id: {tweet.IdStr}, Body: {tweet.FullText}");
+            using (HttpClient httpClient = new HttpClient())
+            {
+                var result = await httpClient.PostAsJsonAsync($"http://localhost:{DAPR_PORT}/v1.0/invoke/fastapiapp/method/evaluate", new
+                {
+                    id = tweet.IdStr,
+                    text = tweet.FullText,
+                    trend = "altjob"
+                });
+                var response = await result.Content.ReadAsStringAsync();
+                Console.WriteLine($"Response: {response}");
+            }
+        }
+
         private static async Task SaveTweetByTrend(TweetV2 tweet)
         {
             Console.WriteLine($"Id: {tweet.Id}, Body: {tweet.Text}");
-            tweet.
             using (HttpClient httpClient = new HttpClient())
             {
                 var result = await httpClient.PostAsJsonAsync($"http://localhost:{DAPR_PORT}/v1.0/invoke/fastapiapp/method/evaluate", new
