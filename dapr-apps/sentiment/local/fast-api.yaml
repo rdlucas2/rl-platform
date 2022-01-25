@@ -39,6 +39,14 @@ spec:
         image: devrlsharedacr.azurecr.io/sentiment-backend:working
         ports:
         - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          periodSeconds: 10
+          failureThreshold: 3
         imagePullPolicy: Always
       imagePullSecrets:
       - name: regcred
