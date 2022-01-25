@@ -1,3 +1,4 @@
+from http.client import HTTPException
 from typing import Optional
 from pydantic import BaseModel
 from fastapi import BackgroundTasks, FastAPI
@@ -23,7 +24,7 @@ async def read_root():
 
 @app.get("/health")
 async def health():
-    return {"health": "OK"}
+    raise HTTPException(status_code=500, detail="NOT OK")
 
 class UserInput(BaseModel):
     text: str
