@@ -1,0 +1,52 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: fastapiapp
+  labels:
+    app: fastapi
+spec:
+  selector:
+    app: fastapi
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapiapp
+  labels:
+    app: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "fastapiapp"
+        dapr.io/app-port: "80"
+    spec:
+      containers:
+      - name: fastapi
+        image: devrlsharedacr.azurecr.io/sentiment-backend:${artifact.metadata.tag}
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          periodSeconds: 10
+          failureThreshold: 3
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: regcred
