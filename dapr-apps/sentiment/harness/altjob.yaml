@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altjobapp
+  labels:
+    app: altjob
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: altjob
+  template:
+    metadata:
+      labels:
+        app: altjob
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "altjobapp"
+    spec:
+      containers:
+      - name: altjob
+        image: devrlsharedacr.azurecr.io/sentiment-altjob:${artifact.metadata.tag}
+      imagePullSecrets:
+      - name: regcred

@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
       - name: fastapi
-        image: devrlsharedacr.azurecr.io/sentiment-backend:working
+        image: devrlsharedacr.azurecr.io/sentiment-backend:${artifact.metadata.tag}
         ports:
         - containerPort: 80
         readinessProbe:
