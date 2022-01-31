@@ -24,7 +24,7 @@ async def read_root():
 
 @app.get("/health")
 async def health():
-    raise HTTPException(status_code=500, detail="NOT OK")
+    raise HTTPException(status_code=200, detail="CANARY OK")
 
 class UserInput(BaseModel):
     text: str
